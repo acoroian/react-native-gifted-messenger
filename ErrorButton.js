@@ -1,8 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableHighlight, StyleSheet } from 'react-native';
+import ReactNative, {View, Text, TouchableHighlight, StyleSheet} from 'react-native';
+import React, { Component } from 'react';
 import GiftedSpinner from 'react-native-gifted-spinner';
 
-const styles = StyleSheet.create({
+let styles = StyleSheet.create({
   errorButtonContainer: {
     marginLeft: 8,
     alignSelf: 'center',
@@ -18,38 +18,36 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class ErrorButton extends React.Component {
+export default class ErrorButton extends Component {
 
-  constructor(props) {
+  constructor(props){
     super(props);
     this.state = {
       isLoading: false,
     };
-
-    this.onPress = this.onPress.bind(this);
   }
+
 
   componentWillMount() {
     Object.assign(styles, this.props.styles);
   }
-
+  
+  
   onPress() {
     this.setState({
       isLoading: true,
     });
 
-    this.props.onErrorButtonPress(this.props.rowData);
+    this.props.onErrorButtonPress(this.props.rowData, this.props.rowID);
   }
 
   render() {
     if (this.state.isLoading === true) {
       return (
-        <View
-          style={[styles.errorButtonContainer, {
-            backgroundColor: 'transparent',
-            borderRadius: 0,
-          }]}
-        >
+        <View style={[styles.errorButtonContainer, {
+          backgroundColor: 'transparent',
+          borderRadius: 0,
+        }]}>
           <GiftedSpinner />
         </View>
       );
@@ -57,8 +55,8 @@ export default class ErrorButton extends React.Component {
     return (
       <View style={styles.errorButtonContainer}>
         <TouchableHighlight
-          underlayColor="transparent"
-          onPress={this.onPress}
+          underlayColor='transparent'
+          onPress={this.onPress.bind(this)}
         >
           <Text style={styles.errorButton}>↻</Text>
         </TouchableHighlight>
@@ -67,14 +65,9 @@ export default class ErrorButton extends React.Component {
   }
 }
 
-ErrorButton.propTypes = {
-  styles: React.PropTypes.object,
-  onErrorButtonPress: React.PropTypes.func,
-  rowData: React.PropTypes.object,
-};
-
 ErrorButton.defaultProps = {
   onErrorButtonPress: () => {},
   rowData: {},
+  rowID: null,
   styles: {},
 };

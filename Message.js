@@ -1,11 +1,9 @@
-import React, {
-  Component,
-} from 'react';
-import { View, Text, StyleSheet, TouchableHighlight, Image } from 'react-native';
+import ReactNative, {View, Text, StyleSheet, TouchableHighlight, Image} from 'react-native';
+import React, { Component } from 'react';
 import Bubble from './Bubble';
 import ErrorButton from './ErrorButton';
 
-const styles = StyleSheet.create({
+var styles = StyleSheet.create({
   rowContainer: {
     flexDirection: 'row',
     marginBottom: 10,
@@ -15,10 +13,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 55,
     marginBottom: 5,
-  },
-  nameInsideBubble: {
-    color: '#666666',
-    marginLeft: 0,
   },
   imagePosition: {
     height: 30,
@@ -50,6 +44,10 @@ const styles = StyleSheet.create({
 
 export default class Message extends Component {
 
+  constructor(props) {
+    super(props);
+  }
+  
   componentWillMount() {
     Object.assign(styles, this.props.styles);
   }
@@ -58,12 +56,7 @@ export default class Message extends Component {
     if (displayNames === true) {
       if (diffMessage === null || name !== diffMessage.name) {
         return (
-          <Text
-            style={[
-              styles.name,
-              this.props.displayNamesInsideBubble ? styles.nameInsideBubble : null,
-            ]}
-          >
+          <Text style={[styles.name]}>
             {name}
           </Text>
         );
@@ -72,57 +65,54 @@ export default class Message extends Component {
     return null;
   }
 
-  renderImage(rowData, diffMessage, forceRenderImage, onImagePress) {
-    const ImageView = rowData.imageView || Image;
-    if (rowData.image) {
-      if (forceRenderImage) {
+  renderImage(rowData, rowID, diffMessage, forceRenderImage, onImagePress){
+    if (rowData.image !== null) {
+      if (forceRenderImage === true) {
         diffMessage = null; // force rendering
       }
 
-      if (diffMessage === null || (diffMessage !== null && (rowData.name !== diffMessage.name || rowData.uniqueId !== diffMessage.uniqueId))) {
+      if (diffMessage === null || (diffMessage != null && (rowData.name !== diffMessage.name || rowData.id !== diffMessage.id))) {
         if (typeof onImagePress === 'function') {
           return (
             <TouchableHighlight
               underlayColor='transparent'
-              onPress={() => onImagePress(rowData)}
+              onPress={() => onImagePress(rowData, rowID)}
+              style={styles.imagePosition}
             >
-              <ImageView {...rowData}
-                source={rowData.image}
-                style={[styles.imagePosition, styles.image, (rowData.position === 'left' ? styles.imageLeft : styles.imageRight)]}
-              />
+              <Image source={rowData.image} style={[styles.imagePosition, styles.image, (rowData.position === 'left' ? styles.imageLeft : styles.imageRight)]}/>
             </TouchableHighlight>
           );
+        } else {
+          return (
+            <Image source={rowData.image} style={[styles.imagePosition, styles.image, (rowData.position === 'left' ? styles.imageLeft : styles.imageRight)]}/>
+          );
         }
+      } else {
         return (
-          <ImageView {...rowData}
-            source={rowData.image}
-            style={[styles.imagePosition, styles.image, (rowData.position === 'left' ? styles.imageLeft : styles.imageRight)]}
-          />
+          <View style={styles.imagePosition}/>
         );
       }
-      return (
-        <View style={styles.imagePosition} />
-      );
     }
     return (
-      <View style={styles.spacer} />
+      <View style={styles.spacer}/>
     );
   }
 
-  renderErrorButton(rowData, onErrorButtonPress) {
+  renderErrorButton(rowData, rowID, onErrorButtonPress){
     if (rowData.status === 'ErrorButton') {
       return (
         <ErrorButton
           onErrorButtonPress={onErrorButtonPress}
           rowData={rowData}
+          rowID={rowID}
           styles={styles}
         />
-      );
+      )
     }
     return null;
   }
 
-  renderStatus(status) {
+  renderStatus(status){
     if (status !== 'ErrorButton' && typeof status === 'string') {
       if (status.length > 0) {
         return (
@@ -135,67 +125,59 @@ export default class Message extends Component {
     return null;
   }
 
-  render() {
+  render(){
+
     var {
       rowData,
+      rowID,
       onErrorButtonPress,
       position,
       displayNames,
       diffMessage,
       forceRenderImage,
       onImagePress,
-      onMessageLongPress,
+      onMessageLongPress
     } = this.props;
 
-    const flexStyle = {};
-    let RowView = Bubble;
-    if (rowData.text) {
-      if (rowData.text.length > 40) {
-        flexStyle.flex = 1;
-      }
+    var flexStyle = {};
+    var RowView = Bubble;
+    if ( rowData.text.length > 40 ) {
+      flexStyle.flex = 1;
     }
 
-    if (rowData.view) {
+    if ( rowData.view ) {
       RowView = rowData.view;
     }
 
-    let messageView = (
+    var messageView = (
       <View>
-        {position === 'left' && !this.props.displayNamesInsideBubble ? this.renderName(rowData.name, displayNames, diffMessage) : null}
-        <View
-          style={[styles.rowContainer, {
-            justifyContent: position === 'left' ? 'flex-start' : position === 'right' ? 'flex-end' : 'center',
-          }]}
-        >
-          {position === 'left' ? this.renderImage(rowData, diffMessage, forceRenderImage, onImagePress) : null}
-          {position === 'right' ? this.renderErrorButton(rowData, onErrorButtonPress) : null}
-          <RowView
-            {...rowData}
-            renderCustomText={this.props.renderCustomText}
-            styles={styles}
-            name={position === 'left' && this.props.displayNamesInsideBubble ? this.renderName(rowData.name, displayNames, diffMessage) : null}
-
-            parseText={this.props.parseText}
-            handlePhonePress={this.props.handlePhonePress}
-            handleUrlPress={this.props.handleUrlPress}
-            handleEmailPress={this.props.handleEmailPress}
+      {position === 'left' ? this.renderName(rowData.name, displayNames, diffMessage) : null}
+      <View style={[styles.rowContainer, {
+          justifyContent: position==='left'?"flex-start":"flex-end"
+        }]}>
+        {position === 'left' ? this.renderImage(rowData, rowID, diffMessage, forceRenderImage, onImagePress) : null}
+        {position === 'right' ? this.renderErrorButton(rowData, rowID, onErrorButtonPress) : null}
+        <RowView
+          {...rowData}
+          renderCustomText={this.props.renderCustomText}
+          styles={styles}
           />
-          {rowData.position === 'right' ? this.renderImage(rowData, diffMessage, forceRenderImage, onImagePress) : null}
-        </View>
-        {rowData.position === 'right' ? this.renderStatus(rowData.status) : null}
+        {rowData.position === 'right' ? this.renderImage(rowData, rowID, diffMessage, forceRenderImage, onImagePress) : null}
+      </View>
+      {rowData.position === 'right' ? this.renderStatus(rowData.status) : null}
       </View>
     );
 
     if (typeof onMessageLongPress === 'function') {
       return (
         <TouchableHighlight
-          underlayColor="transparent"
-          onLongPress={() => onMessageLongPress(rowData)}
-        >
+          underlayColor='transparent'
+          onLongPress={() => onMessageLongPress(rowData, rowID)}>
           {messageView}
         </TouchableHighlight>
       );
+    } else {
+      return messageView;
     }
-    return messageView;
   }
 }
